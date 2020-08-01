@@ -269,7 +269,7 @@ static void espnow_sync_task(void *pvParameter)
                     ESP_ERROR_CHECK(esp_now_add_peer(peer));
                     free(peer);
                 }
-
+//
                 /* Indicates that the device has received broadcast ESPNOW data. */
                 if (send_param->state == 0)
                 {
