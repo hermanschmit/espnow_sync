@@ -1,0 +1,3 @@
+# ESPNOW_SYNC: Using ESPNOW to synchronize multiple ESP32 devices.
+
+This repository includes a library and an example of code to synchronize multiple ESP32 devices. It is intended for use with the esp_idf and PlatformIO.
