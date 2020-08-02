@@ -69,8 +69,12 @@ uint64_t espnow_sync_wifi_init(void)
     /* Unclear whether this is necessary. From ESPNOW example.
      */
     ESP_ERROR_CHECK(esp_wifi_set_channel(CONFIG_ESPNOW_CHANNEL, 0));
-    ret_val = (mac[0]) | (mac[1] << 8) | (mac[2] << 16) | (mac[3] << 24) |
-        (mac[4] << 32) | (mac[5] << 40);
+    ret_val = (uint64_t) mac[0];
+    ret_val = (ret_val << 8) | mac[1];
+    ret_val = (ret_val << 8) | mac[2];
+    ret_val = (ret_val << 8) | mac[3];
+    ret_val = (ret_val << 8) | mac[4];
+    ret_val = (ret_val << 8) | mac[5];
     return ret_val;
 }
 
@@ -131,7 +135,7 @@ static void espnow_sync_recv_cb(const uint8_t *mac_addr, const uint8_t *data, in
 int espnow_sync_data_parse(uint8_t *data, uint16_t data_len,
                            uint8_t *state,
                            uint16_t *seq,
-                           uint8_t *magic,
+                           uint32_t *magic,
                            uint64_t *ts0_m)
 {
     espnow_sync_data_t *buf = (espnow_sync_data_t *)data;
@@ -169,7 +173,7 @@ static void espnow_sync_task(void *pvParameter)
     espnow_sync_event_t evt;
     uint8_t recv_state = 0;
     uint16_t recv_seq = 0;
-    uint8_t recv_magic = 0;
+    uint32_t recv_magic = 0;
     uint64_t recv_ts0_m = 0;
     bool is_broadcast = false;
     int ret;
@@ -269,7 +273,7 @@ static void espnow_sync_task(void *pvParameter)
                     ESP_ERROR_CHECK(esp_now_add_peer(peer));
                     free(peer);
                 }
-//
+
                 /* Indicates that the device has received broadcast ESPNOW data. */
                 if (send_param->state == 0)
                 {
@@ -286,7 +290,15 @@ static void espnow_sync_task(void *pvParameter)
                     /* The device which has the bigger magic number sends ESPNOW data, the other one
                          * receives ESPNOW data.
                          */
-                    if (send_param->unicast == false && send_param->magic >= recv_magic)
+                    ESP_LOGI(TAG, "local magic: %u recv_magic: %u", send_param->magic, recv_magic);
+
+                    if (send_param->magic == recv_magic)
+                    {
+                        ESP_LOGE(TAG, "Identical Magic Numbers. Cannot resolve master/slave.");
+                        espnow_sync_deinit(send_param);
+                        vTaskDelete(NULL);
+                    }
+                    if (send_param->unicast == false && send_param->magic > recv_magic)
                     {
                         ESP_LOGI(TAG, "Start sending unicast data");
                         ESP_LOGI(TAG, "send data to " MACSTR "", MAC2STR(recv_cb->mac_addr));

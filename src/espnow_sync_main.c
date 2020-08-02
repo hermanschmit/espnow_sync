@@ -123,7 +123,10 @@ void app_main()
   example_tg0_init(timer_idx);
 
   uint64_t mac = espnow_sync_wifi_init();
-  int mac_trunc = (int) mac;
-  ESP_LOGI(TAG, "Mac Addr %d", mac_trunc);
-  espnow_sync_exec(mac_trunc, 100, 1000, 10);
+  uint32_t mac_trunc = (uint32_t) mac;
+  ESP_LOGI(TAG, "Mac Addr %u", mac_trunc);
+
+  ESP_ERROR_CHECK(espnow_sync_exec(0, 100, 1000, 20));
+  ESP_LOGI(TAG, "Sync_exec returned");
+
 }
