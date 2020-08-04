@@ -17,7 +17,6 @@
 #define CONFIG_ESPNOW_CHANNEL 1
 #define CONFIG_ESPNOW_SEND_LEN 200
 #define CONFIG_ESPNOW_BLINK_GPIO 5
-
 /* ESPNOW can work in both station and softap mode. It is configured in menuconfig. */
 #if CONFIG_STATION_MODE
 #define ESPNOW_WIFI_MODE WIFI_MODE_STA
@@ -33,6 +32,10 @@
 
 // This is the empircally measured delta from master to slave for communication latency
 #define ESPNOW_WIFI_DELTA 3500
+// Time (in seconds) to wait before giving up on sync after call to espnow_sync_await_completion
+#define ESPNOW_SYNC_AWAIT_LIMIT 120
+
+#define ESPNOW_SYNC_TASK_NAME "espnow_sync_task"
 
 typedef enum
 {
@@ -99,7 +102,9 @@ typedef struct
     uint8_t dest_mac[ESP_NOW_ETH_ALEN]; //MAC address of destination device.
 } espnow_sync_send_param_t;
 
+
 uint64_t espnow_sync_wifi_init(void);
 esp_err_t espnow_sync_exec(uint32_t, uint16_t, uint16_t, uint16_t);
+esp_err_t espnow_sync_await_completion();
 
 #endif

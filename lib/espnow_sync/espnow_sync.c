@@ -35,6 +35,8 @@ static uint16_t s_espnow_sync_seq[ESPNOW_SYNC_DATA_MAX] = {0, 0};
 static int64_t diff_sum;
 static int diff_count;
 static uint16_t sync_iterations;
+static uint16_t sync_count;
+
 
 static void espnow_sync_deinit(espnow_sync_send_param_t *send_param);
 
@@ -69,7 +71,7 @@ uint64_t espnow_sync_wifi_init(void)
     /* Unclear whether this is necessary. From ESPNOW example.
      */
     ESP_ERROR_CHECK(esp_wifi_set_channel(CONFIG_ESPNOW_CHANNEL, 0));
-    ret_val = (uint64_t) mac[0];
+    ret_val = (uint64_t)mac[0];
     ret_val = (ret_val << 8) | mac[1];
     ret_val = (ret_val << 8) | mac[2];
     ret_val = (ret_val << 8) | mac[3];
@@ -209,6 +211,7 @@ static void espnow_sync_task(void *pvParameter)
             if (!is_broadcast)
             {
                 send_param->count--;
+                sync_count = send_param->count;
                 if (send_param->count == 0)
                 {
                     ESP_LOGI(TAG, "Send done");
@@ -336,8 +339,9 @@ static void espnow_sync_task(void *pvParameter)
                     diff_count > 0)
                 {
                     int64_t avg = diff_sum / sync_iterations;
-                    ESP_LOGI(TAG, "Set Delta: %lld", avg);
-                    timer_set_delta_counter_value(TIMER_GROUP_0, TIMER_0, avg + ESPNOW_WIFI_DELTA);
+                    int64_t delta = avg / 1.5; // reduce magnitude of adjustment
+                    ESP_LOGI(TAG, "Avg: %lld Set Delta: %lld", avg, delta);
+                    timer_set_delta_counter_value(TIMER_GROUP_0, TIMER_0, delta + ESPNOW_WIFI_DELTA);
                     diff_sum = 0;
                 }
 
@@ -365,6 +369,7 @@ esp_err_t espnow_sync_exec(uint32_t magic, uint16_t count, uint16_t delay, uint1
 
     diff_sum = (int64_t)0;
     sync_iterations = iterations;
+    sync_count = count;
 
     espnow_sync_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(espnow_sync_event_t));
     if (espnow_sync_queue == NULL)
@@ -427,7 +432,12 @@ esp_err_t espnow_sync_exec(uint32_t magic, uint16_t count, uint16_t delay, uint1
     memcpy(send_param->dest_mac, example_broadcast_mac, ESP_NOW_ETH_ALEN);
     espnow_sync_data_prepare(send_param);
 
-    xTaskCreate(espnow_sync_task, "espnow_sync_task", 2048, send_param, 4, NULL);
+    xTaskCreate(espnow_sync_task,
+                ESPNOW_SYNC_TASK_NAME,
+                2048, // Stack depth
+                send_param,
+                4, // Priority
+                NULL);
 
     return ESP_OK;
 }
@@ -436,6 +446,19 @@ static void espnow_sync_deinit(espnow_sync_send_param_t *send_param)
 {
     free(send_param->buffer);
     free(send_param);
+    sync_count = 0;
     vSemaphoreDelete(espnow_sync_queue);
     esp_now_deinit();
+}
+
+// Seems like there should be a smarter way to do this.
+esp_err_t espnow_sync_await_completion()
+{
+    for(int i=0; i < ESPNOW_SYNC_AWAIT_LIMIT; i++) {
+        sleep(1);
+        if (sync_count == 0) {
+            return ESP_OK;
+        }
+    }
+    return ESP_FAIL;
 }

@@ -1,17 +1,34 @@
 # ESPNOW_SYNC
 
-This repository includes a library and an example of code to synchronize multiple ESP32 devices. It is intended for use with the esp_idf and PlatformIO.
+This repository includes a library and an example of code to synchronize multiple ESP32 
+devices using the [ESPNOW](https://www.espressif.com/en/products/software/esp-now/overview)
+communications protocol. It is intended for use with the PlatformIO using the esp-idf backend.
 
 Currently tested on Sparkfun ESP32 Thing boards.
 
-## Requirements
-
 ## Operation
 
-Like Ethernet 1588.
+This library operates on a similar principle as 
+[PTP](https://en.wikipedia.org/wiki/Precision_Time_Protocol). The elements negotiate to determine
+the root and leaves of the tree, then the leaves send out packets that include their egress time.
+The root sends back a packet with the original egress time, the root's ingress time. The leaf
+timestamps its receipt of the return packet. With those three timestamps, the leaf adjusts its
+clock to match the root.
 
-TIMER0 only
-Conventional WiFi must be turned off.
+The code is written using the task management of FreeRTOS. But it can be invoked in a way that
+hides most of those details, as if it was a straight-line program. It is possible to integrate
+this into another application that uses FreeRTOS, but I'm not facile enough with FreeRTOS to do that, 
+or to deliver a useful library for that. Suggestions welcome.
+
+### Known Limitations and Issues
+
+I have only tested this with TIMER_GROUP_0 and TIMER_0. I recall seeing somewhere that this timer
+was special in a way that allowed me to do a read-modify-write to update its value. But I cannot
+find that statement anymore. This timer is hardcoded, currently.
+
+Currently, the root/leaf negotiation only works for two nodes.
+
+ESPNOW using the WiFi transceiver, and is therefore incompatible with conventional WiFi. 
 
 ## Usage
 
@@ -25,9 +42,12 @@ TODO
 
 ### Possible causes of Accuracy Loss
 
-TODO
+The crystals on these devices do have small PPM variations, and therefore the clocks will drift.
+
+System interrupts can cause delays in egress of signals.
 
 ## TODOs
 
-Add a scheme to check that the synchronization completed successfully.
+- [x] Add a scheme to check that the synchronization completed successfully.
+- [ ] Add a negotiation scheme for more than two devices.
 
