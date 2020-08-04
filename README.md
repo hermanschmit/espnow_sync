@@ -6,6 +6,8 @@ communications protocol. It is intended for use with the PlatformIO using the es
 
 Currently tested on Sparkfun ESP32 Thing boards.
 
+A video demo of this library is [here](https://youtu.be/j6uvJLLgQaY).
+
 ## Operation
 
 This library operates on a similar principle as 
