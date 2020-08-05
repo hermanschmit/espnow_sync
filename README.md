@@ -40,7 +40,17 @@ The example application espnow_sync_main.c sets up a blinking LED based on TIMER
 
 ## Accuracy Measurements
 
-TODO
+Using two identical ESP32 Thing Boards, I reliably synchronize to within 3ms.
+
+![Scope Diagram 1](espnow_sync_scope1.png)
+
+Due to limitations of my scope, the A signal is AC-coupled to generate a trigger. In DC terms,
+it is a square wave.
+
+Because of variations in the crystals, these clocks will vary and the synchronization
+will decay. Below is a picture of the same two boards after two hours.
+
+
 
 ### Possible causes of Accuracy Loss
 
