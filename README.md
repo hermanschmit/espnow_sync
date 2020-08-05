@@ -48,9 +48,11 @@ Due to limitations of my scope, the A signal is AC-coupled to generate a trigger
 it is a square wave.
 
 Because of variations in the crystals, these clocks will vary and the synchronization
-will decay. Below is a picture of the same two boards after two hours.
+will decay. Below is a picture of the same synchronization after two hours.
 
+![Scope Diagram 2](espnow_sync_scope2.png)
 
+The synchronization seems to have degrades by about 4ms, so these boards might lose 2ms per hour.
 
 ### Possible causes of Accuracy Loss
 
