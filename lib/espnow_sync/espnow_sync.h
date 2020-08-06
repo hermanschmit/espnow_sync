@@ -82,10 +82,9 @@ typedef struct
     uint8_t type;          //Broadcast or unicast ESPNOW data.
     uint8_t state;         //Indicate that if has received broadcast ESPNOW data or not.
     uint16_t seq_num;      //Sequence number of ESPNOW data.
-    uint8_t magic;         //Magic number which is used to determine which device to send unicast ESPNOW data.
+    uint32_t magic;        //Magic number which is used to determine which device to send unicast ESPNOW data.
     uint64_t timestamp0_m; //Master timestamp 0
     uint64_t timestamp0_s; //Slave  timestamp 0
-    uint64_t timestamp1_m; //Master timestamp 1
 } __attribute__((packed)) espnow_sync_data_t;
 
 /* Parameters of sending ESPNOW data. */
@@ -94,7 +93,7 @@ typedef struct
     bool unicast;                       //Send unicast ESPNOW data.
     bool broadcast;                     //Send broadcast ESPNOW data.
     uint8_t state;                      //Indicate that if has received broadcast ESPNOW data or not.
-    uint32_t magic;                      //Magic number which is used to determine which device to send unicast ESPNOW data.
+    uint32_t magic;                     //Magic number which is used to determine which device to send unicast ESPNOW data.
     uint16_t count;                     //Total count of unicast ESPNOW data to be sent.
     uint16_t delay;                     //Delay between sending two ESPNOW data, unit: ms.
     int len;                            //Length of ESPNOW data to be sent, unit: byte.

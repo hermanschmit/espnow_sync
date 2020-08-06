@@ -126,13 +126,13 @@ void app_main()
   uint32_t mac_trunc = (uint32_t) mac;
   ESP_LOGI(TAG, "Mac Addr %u", mac_trunc);
 
-  ESP_ERROR_CHECK(espnow_sync_exec(mac_trunc, 25, 1000, 5));
+  ESP_ERROR_CHECK(espnow_sync_exec(mac_trunc, 25, 2000, 5));
   ESP_LOGI(TAG, "Sync_exec returned");
 
   ESP_ERROR_CHECK(espnow_sync_await_completion());
   ESP_LOGI(TAG, "await_completion_finished");
 
-  ESP_ERROR_CHECK(espnow_sync_exec(mac_trunc, 10, 1000, 5));
+  ESP_ERROR_CHECK(espnow_sync_exec(mac_trunc, 10, 2000, 5));
 
   ESP_ERROR_CHECK(espnow_sync_await_completion());
   ESP_LOGI(TAG, "await_completion_finished 2");
